@@ -12,7 +12,7 @@ int main(int argc, char **argv){
   ros::Publisher chatter_pub = n.advertise<force_sensor_serial_port::ForceTorque>("ForceTorqueReadings", 10);
   //open the serial communication
    cereal::CerealPort cp;
-  cp.open("/dev/ttyUSB0", 9600);
+  cp.open("/dev/ttyUSB0", 19200);
 
   cp.write("OA\r",3);
 
@@ -29,7 +29,9 @@ int main(int argc, char **argv){
     double test;
 
     do{
-      cp.readLine(&s,1000);
+      std::cout <<"about to readLine \n";
+      cp.readLine(&s,-1);
+      std::cout <<"finished readLine \n";
       //parse message and publish it
 
       std::stringstream ss;

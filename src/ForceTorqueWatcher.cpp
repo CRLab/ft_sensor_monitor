@@ -5,24 +5,24 @@
 #include <iostream>
 
 ros::Publisher * warning_pub;
+
 void forceTorqueCallback(const force_sensor_serial_port::ForceTorqueConstPtr& msg){
 
   //get mean of last three z axes
   double z[3];
   
-
   if((msg->zForceNewtons  + z[0] + z[1] + z[2])/4 < -8.0)
-    std_msgs::String msg;
-    msg.data = "Hit \n";
+  {
+    std_msgs::String out_msg;
+    out_msg.data = "Hit \n";
     std::cout << "Hit \n";
-    warning_pub->publish(msg);
+    warning_pub->publish(out_msg);
   }
 
-z[2] = z[1];
-z[1] = z[0];
-z[0] = msg->zForceNewtons;
+  z[2] = z[1];
+  z[1] = z[0];
+  z[0] = msg->zForceNewtons;
   
-
 }
 
 int main(int argc, char ** argv){
