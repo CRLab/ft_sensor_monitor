@@ -1,6 +1,5 @@
 #include "ros/ros.h"
-#include "force_sensor_serial_port/ForceTorque.h"
-#include "force_sensor_serial_port/ForceTorqueTare.h"
+#include <geometry_msgs/Wrench.h>
 #include <cereal_port/CerealPort.h>
 #include <sstream>
 #include <fstream>
@@ -9,45 +8,46 @@ int main(int argc, char **argv){
   ros::init(argc, argv, "ForceTorqueServer");
   
   ros::NodeHandle n;
-  ros::Publisher chatter_pub = n.advertise<force_sensor_serial_port::ForceTorque>("ForceTorqueReadings", 10);
-  //open the serial communication
-   cereal::CerealPort cp;
+  ros::Publisher wrench_pub = n.advertise<geometry_msgs::Wrench>("ForceTorqueReadings", 10);
+  
+  cereal::CerealPort cp;
   cp.open("/dev/ttyUSB0", 19200);
-
   cp.write("OA\r",3);
 
   //  register the callback
   ros::Rate loop_rate(300);
-  std::cout <<"Starting \n";
-  std::ofstream os ("test_data");
-  int i = 1;
+  
   while (ros::ok()){
-    force_sensor_serial_port::ForceTorque fm;
+    geometry_msgs::Wrench wrench;
 
-    std::string s;
-
-    double test;
+    std::string serial_read_in;
+    double valid_read;
 
     do{
-      std::cout <<"about to readLine \n";
-      cp.readLine(&s,-1);
-      std::cout <<"finished readLine \n";
-      //parse message and publish it
-
+      // read message into string
+      cp.readLine(&serial_read_in,-1);
       std::stringstream ss;
-      ss << s;
-      ss >> test >> fm.xForceNewtons >> fm.yForceNewtons >> fm.zForceNewtons >> fm.xTorqueNewtonMeters >> fm.yTorqueNewtonMeters >> fm.zTorqueNewtonMeters ;
-      os << s;  
-    }while(test != 0);
-    chatter_pub.publish(fm);
+      ss << serial_read_in;
 
-    if (!i%1000){
-      os.flush();
-      break;
-    }
-    i++;
+      // parse message into valid_read, and message
+      ss >> valid_read;
+      // Forces in Newtons
+      ss >> wrench.force.x;
+      ss >> wrench.force.y;
+      ss >> wrench.force.z;
+      // Torques in Newton Meters
+      ss >> wrench.torque.x;
+      ss >> wrench.torque.y;
+      ss >> wrench.torque.z;
+  
+    }while(valid_read != 0);
+
+    //pubish the new ft sensor reading
+    wrench_pub.publish(wrench);
+    
     loop_rate.sleep();
   }
+
   return 0;
 }
 

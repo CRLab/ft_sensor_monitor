@@ -1,17 +1,17 @@
 #include "ros/ros.h"
-#include "force_sensor_serial_port/ForceTorque.h"
+#include <geometry_msgs/Wrench.h>
 #include "std_msgs/String.h"
 #include <cstring>
 #include <iostream>
 
 ros::Publisher * warning_pub;
 
-void forceTorqueCallback(const force_sensor_serial_port::ForceTorqueConstPtr& msg){
+void forceTorqueCallback(const geometry_msgs::WrenchConstPtr& msg){
 
   //get mean of last three z axes
   double z[3];
   
-  if((msg->zForceNewtons  + z[0] + z[1] + z[2])/4 < -8.0)
+  if((msg->force.z + z[0] + z[1] + z[2])/4 < -8.0)
   {
     std_msgs::String out_msg;
     out_msg.data = "Hit \n";
@@ -21,7 +21,7 @@ void forceTorqueCallback(const force_sensor_serial_port::ForceTorqueConstPtr& ms
 
   z[2] = z[1];
   z[1] = z[0];
-  z[0] = msg->zForceNewtons;
+  z[0] = msg->force.z;
   
 }
 
