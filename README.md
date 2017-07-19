@@ -1,2 +1,2 @@
-# force_sensor_serial_port
+# ft_sensor_monitor
 Code for reading from the force torque sensor
